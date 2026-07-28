@@ -1,7 +1,7 @@
 # bedrock-chat
 
 A minimal terminal chat app that talks to GPT models on **Amazon Bedrock**
-(via the Bedrock Converse API). This is the sample project used throughout
+(via Bedrock's OpenAI-compatible responses API). This is the sample project used throughout
 **Part 2** of the OpenAI on AWS workshop.
 
 ## Prerequisites
@@ -34,7 +34,7 @@ Then type messages at the `you>` prompt. Type `exit` or `quit` to leave.
 | `BEDROCK_MODEL_ID` | `openai.gpt-5.5` | Bedrock model id |
 | `BEDROCK_REGION` | `us-east-2` | Region (falls back to `AWS_REGION` / `AWS_DEFAULT_REGION`) |
 | `BEDROCK_MAX_TOKENS` | `1024` | Max response tokens |
-| `BEDROCK_TEMPERATURE` | `0.7` | Sampling temperature |
+| `BEDROCK_TEMPERATURE` | _(unset)_ | Sampling temperature. Omitted by default — GPT-5.x reasoning models reject it; set only for models that support it. |
 
 ## Test
 

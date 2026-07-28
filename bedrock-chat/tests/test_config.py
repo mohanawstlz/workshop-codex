@@ -12,6 +12,8 @@ def test_defaults_when_env_empty():
     assert settings.model_id == DEFAULT_MODEL_ID
     assert settings.region == DEFAULT_REGION
     assert settings.max_tokens == 1024
+    # Temperature is unset by default (GPT-5.x rejects it).
+    assert settings.temperature is None
 
 
 def test_region_precedence_prefers_bedrock_region():

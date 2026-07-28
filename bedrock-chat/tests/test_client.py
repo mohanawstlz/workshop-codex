@@ -1,9 +1,11 @@
 """Unit tests for the pure helpers and the client's conversation handling.
 
-These tests never touch AWS: BedrockChatClient accepts an injected fake client,
-and the helpers are plain functions. Run with `pytest` from the bedrock-chat
-folder.
+These tests never touch AWS: BedrockChatClient accepts an injected fake
+transport, and the helpers are plain functions. Run with `pytest` from the
+bedrock-chat folder.
 """
+
+import json
 
 import pytest
 
@@ -12,10 +14,7 @@ from bedrock_chat.config import Settings
 
 
 def test_build_message_shape():
-    assert build_message("user", "hi") == {
-        "role": "user",
-        "content": [{"text": "hi"}],
-    }
+    assert build_message("user", "hi") == {"role": "user", "content": "hi"}
 
 
 def test_build_message_rejects_bad_role():
@@ -23,52 +22,103 @@ def test_build_message_rejects_bad_role():
         build_message("system", "nope")
 
 
-def test_extract_text_joins_blocks():
+def test_extract_text_joins_output_text_blocks():
     response = {
-        "output": {"message": {"content": [{"text": "Hello "}, {"text": "world"}]}}
+        "output": [
+            {
+                "type": "message",
+                "content": [
+                    {"type": "output_text", "text": "Hello "},
+                    {"type": "output_text", "text": "world"},
+                ],
+            }
+        ]
     }
     assert extract_text(response) == "Hello world"
+
+
+def test_extract_text_skips_reasoning_items():
+    # Reasoning items and non-output_text blocks must not leak into the reply.
+    response = {
+        "output": [
+            {"type": "reasoning", "content": [{"type": "reasoning_text", "text": "hmm"}]},
+            {"type": "message", "content": [{"type": "output_text", "text": "READY"}]},
+        ]
+    }
+    assert extract_text(response) == "READY"
 
 
 def test_extract_text_handles_empty_response():
     assert extract_text({}) == ""
 
 
-class _FakeBedrock:
-    """Minimal stand-in for the boto3 bedrock-runtime client."""
+class _FakeTransport:
+    """Records requests and returns a canned responses-API payload."""
 
     def __init__(self, reply="pong"):
         self.reply = reply
         self.calls = []
 
-    def converse(self, **kwargs):
-        self.calls.append(kwargs)
-        return {"output": {"message": {"content": [{"text": self.reply}]}}}
+    def __call__(self, url, headers, body):
+        self.calls.append({"url": url, "headers": headers, "body": json.loads(body)})
+        return {
+            "output": [
+                {
+                    "type": "message",
+                    "content": [{"type": "output_text", "text": self.reply}],
+                }
+            ]
+        }
 
 
 def test_send_records_history_and_returns_reply():
-    fake = _FakeBedrock(reply="pong")
-    client = BedrockChatClient(settings=Settings(), client=fake)
+    fake = _FakeTransport(reply="pong")
+    client = BedrockChatClient(settings=Settings(), transport=fake)
 
     reply = client.send("ping")
 
     assert reply == "pong"
-    # One user turn + one assistant turn recorded.
+    # One user turn + one assistant turn recorded, in responses-API shape.
     assert client.history == [
-        {"role": "user", "content": [{"text": "ping"}]},
-        {"role": "assistant", "content": [{"text": "pong"}]},
+        {"role": "user", "content": "ping"},
+        {"role": "assistant", "content": "pong"},
     ]
-    # The full history is sent on each call.
-    assert fake.calls[0]["messages"] == client.history
-    assert fake.calls[0]["modelId"] == Settings().model_id
+    # The request `input` carries the conversation up to (and including) this
+    # user turn; the assistant reply is appended to history afterward.
+    sent = fake.calls[0]["body"]
+    assert sent["input"] == [{"role": "user", "content": "ping"}]
+    assert sent["model"] == Settings().model_id
 
 
-def test_send_passes_inference_config():
-    fake = _FakeBedrock()
-    settings = Settings(max_tokens=256, temperature=0.1)
-    client = BedrockChatClient(settings=settings, client=fake)
+def test_send_targets_regional_responses_endpoint():
+    fake = _FakeTransport()
+    client = BedrockChatClient(settings=Settings(region="us-east-2"), transport=fake)
 
     client.send("hi")
 
-    cfg = fake.calls[0]["inferenceConfig"]
-    assert cfg == {"maxTokens": 256, "temperature": 0.1}
+    assert (
+        fake.calls[0]["url"]
+        == "https://bedrock-mantle.us-east-2.api.aws/openai/v1/responses"
+    )
+
+
+def test_send_passes_inference_params():
+    fake = _FakeTransport()
+    settings = Settings(max_tokens=256, temperature=0.1)
+    client = BedrockChatClient(settings=settings, transport=fake)
+
+    client.send("hi")
+
+    sent = fake.calls[0]["body"]
+    assert sent["max_output_tokens"] == 256
+    assert sent["temperature"] == 0.1
+
+
+def test_send_omits_temperature_by_default():
+    # GPT-5.x reasoning models reject `temperature`; it must not be sent unless set.
+    fake = _FakeTransport()
+    client = BedrockChatClient(settings=Settings(), transport=fake)
+
+    client.send("hi")
+
+    assert "temperature" not in fake.calls[0]["body"]

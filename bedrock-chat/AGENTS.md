@@ -5,13 +5,16 @@ Guidance for Codex (and other coding agents) working in this project.
 ## What this project is
 
 A minimal terminal chat app that talks to GPT models on **Amazon Bedrock**
-using the Bedrock **Converse** API via `boto3`. It is the sample project for
+using Bedrock's OpenAI-compatible **responses** endpoint
+(`bedrock-mantle.<region>.api.aws/openai/v1/responses`) with SigV4 auth. This
+is the same surface Codex uses — the GPT-5.x models are not served by the
+Converse API. It is the sample project for
 Part 2 of the OpenAI on AWS workshop.
 
 ## Layout
 
 - `bedrock_chat/config.py` — environment-driven `Settings` (model, region, inference params). No AWS calls.
-- `bedrock_chat/client.py` — `BedrockChatClient` (conversation history + Converse call) and pure helpers `build_message` / `extract_text`.
+- `bedrock_chat/client.py` — `BedrockChatClient` (conversation history + SigV4-signed responses-API call) and pure helpers `build_message` / `extract_text`. The HTTP transport is injectable for offline tests.
 - `bedrock_chat/__main__.py` — interactive REPL: `python -m bedrock_chat`.
 - `tests/` — pytest suite. Fully offline: the client accepts an injected fake, helpers are pure.
 
