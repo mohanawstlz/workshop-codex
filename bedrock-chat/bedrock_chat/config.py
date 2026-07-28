@@ -12,7 +12,7 @@ from dataclasses import dataclass
 
 # Defaults line up with the workshop's ~/.codex/config.toml.
 DEFAULT_MODEL_ID = "openai.gpt-5.5"
-DEFAULT_REGION = "us-west-2"
+DEFAULT_REGION = "us-east-2"
 DEFAULT_MAX_TOKENS = 1024
 DEFAULT_TEMPERATURE = 0.7
 

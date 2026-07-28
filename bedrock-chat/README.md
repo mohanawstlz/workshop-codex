@@ -32,7 +32,7 @@ Then type messages at the `you>` prompt. Type `exit` or `quit` to leave.
 | Variable | Default | Purpose |
 |---|---|---|
 | `BEDROCK_MODEL_ID` | `openai.gpt-5.5` | Bedrock model id |
-| `BEDROCK_REGION` | `us-west-2` | Region (falls back to `AWS_REGION` / `AWS_DEFAULT_REGION`) |
+| `BEDROCK_REGION` | `us-east-2` | Region (falls back to `AWS_REGION` / `AWS_DEFAULT_REGION`) |
 | `BEDROCK_MAX_TOKENS` | `1024` | Max response tokens |
 | `BEDROCK_TEMPERATURE` | `0.7` | Sampling temperature |
 
