@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from typing import Optional
+from typing import Mapping, Optional
 
 # Defaults line up with the workshop's ~/.codex/config.toml.
 DEFAULT_MODEL_ID = "openai.gpt-5.5"
@@ -30,19 +30,19 @@ class Settings:
     temperature: Optional[float] = DEFAULT_TEMPERATURE
 
     @classmethod
-    def from_env(cls, env: dict | None = None) -> "Settings":
+    def from_env(cls, env: Mapping[str, str] | None = None) -> "Settings":
         """Build Settings from environment variables (defaults to os.environ)."""
-        env = os.environ if env is None else env
+        source = os.environ if env is None else env
         region = (
-            env.get("BEDROCK_REGION")
-            or env.get("AWS_REGION")
-            or env.get("AWS_DEFAULT_REGION")
+            source.get("BEDROCK_REGION")
+            or source.get("AWS_REGION")
+            or source.get("AWS_DEFAULT_REGION")
             or DEFAULT_REGION
         )
-        temperature = env.get("BEDROCK_TEMPERATURE")
+        temperature = source.get("BEDROCK_TEMPERATURE")
         return cls(
-            model_id=env.get("BEDROCK_MODEL_ID", DEFAULT_MODEL_ID),
+            model_id=source.get("BEDROCK_MODEL_ID", DEFAULT_MODEL_ID),
             region=region,
-            max_tokens=int(env.get("BEDROCK_MAX_TOKENS", DEFAULT_MAX_TOKENS)),
+            max_tokens=int(source.get("BEDROCK_MAX_TOKENS", DEFAULT_MAX_TOKENS)),
             temperature=float(temperature) if temperature is not None else None,
         )

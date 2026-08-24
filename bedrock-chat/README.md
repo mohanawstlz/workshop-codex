@@ -27,6 +27,23 @@ python -m bedrock_chat
 
 Then type messages at the `you>` prompt. Type `exit` or `quit` to leave.
 
+### Conversation history
+
+The interactive chat remembers completed user and assistant turns for the
+current session. Each new request includes the earlier conversation so the
+model can respond in context. Failed requests are not added to the history.
+
+History is held only in memory:
+
+- Closing the process or creating a new `BedrockChatClient` starts a fresh
+  conversation.
+- Nothing is written to disk or shared between client instances.
+- A stateless caller can create a new client for each message.
+
+The complete history is resent with every request. Long conversations therefore
+use more tokens, take longer, and may eventually exceed the model's context
+window. This sample does not automatically trim or summarize older turns.
+
 ### Configuration (environment variables)
 
 | Variable | Default | Purpose |

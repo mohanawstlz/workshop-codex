@@ -81,7 +81,7 @@ def _sigv4_transport(region: str) -> Transport:
 
 
 class BedrockChatClient:
-    """Maintains conversation history and calls the Bedrock responses endpoint."""
+    """Maintains successful conversation turns and calls the Bedrock endpoint."""
 
     def __init__(self, settings: Settings | None = None, transport: Transport | None = None) -> None:
         self.settings = settings or Settings.from_env()
@@ -93,11 +93,12 @@ class BedrockChatClient:
         self.history: list[dict[str, Any]] = []
 
     def send(self, text: str) -> str:
-        """Send a user turn, record the exchange, and return the reply text."""
-        self.history.append(build_message("user", text))
+        """Send a user turn and record the exchange only after a valid reply."""
+        user_message = build_message("user", text)
+        pending_input = [*self.history, user_message]
         payload: dict[str, Any] = {
             "model": self.settings.model_id,
-            "input": self.history,
+            "input": pending_input,
             "max_output_tokens": self.settings.max_tokens,
         }
         # GPT-5.x reasoning models reject `temperature`; only send it when set.
@@ -108,5 +109,12 @@ class BedrockChatClient:
             self.url, {"Content-Type": "application/json"}, body
         )
         reply = extract_text(response)
-        self.history.append(build_message("assistant", reply))
+        if not reply:
+            raise ValueError("Bedrock response contained no output text")
+        self.history.extend(
+            [
+                user_message,
+                build_message("assistant", reply),
+            ]
+        )
         return reply
