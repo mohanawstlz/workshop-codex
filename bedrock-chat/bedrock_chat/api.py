@@ -101,6 +101,10 @@ def create_app(
     @app.post("/api/chat", response_model=ChatResponse)
     def chat(request: ChatRequest) -> ChatResponse:
         """Send the validated conversation to Bedrock and return its next reply."""
+        print(
+            f"Chat request received: messages={len(request.messages)} "
+            f"model={resolved_settings.model_id} region={resolved_settings.region}"
+        )
         try:
             client = client_factory(resolved_settings)
             client.history = [

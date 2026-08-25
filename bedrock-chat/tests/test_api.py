@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
 from bedrock_chat.api import create_app
@@ -73,6 +74,25 @@ def test_chat_passes_prior_history_and_latest_user_message() -> None:
     instance = _FakeClient.instances[0]
     assert instance.history == messages[:-1]
     assert instance.sent == ["Follow up"]
+
+
+def test_chat_logs_safe_request_metadata(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    client = _test_client()
+
+    response = client.post(
+        "/api/chat",
+        json={"messages": [{"role": "user", "content": "private prompt"}]},
+    )
+    captured = capsys.readouterr()
+
+    assert response.status_code == 200
+    assert (
+        "Chat request received: messages=1 "
+        "model=openai.test-model region=us-test-1"
+    ) in captured.out
+    assert "private prompt" not in captured.out
 
 
 def test_chat_rejects_invalid_conversation_order() -> None:

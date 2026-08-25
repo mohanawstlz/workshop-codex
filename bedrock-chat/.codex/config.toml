@@ -1,0 +1,18 @@
+[mcp_servers.billing-cost-management-mcp]
+command = "/opt/homebrew/bin/uvx"
+args = ["awslabs.billing-cost-management-mcp-server@latest"]
+startup_timeout_sec = 120
+
+[mcp_servers.billing-cost-management-mcp.env]
+AWS_REGION = "us-east-1"
+AWS_PROFILE = "redact"
+FASTMCP_LOG_LEVEL = "ERROR"
+UV_CACHE_DIR = "/Users/maalapat/Downloads/codexworkshop/workshop/workshop-codex/bedrock-chat/.uv-cache"
+
+[[hooks.PostToolUse]]
+matcher = "^apply_patch$"
+
+[[hooks.PostToolUse.hooks]]
+type = "command"
+command = "bash .codex/hooks/quality-check.sh"
+command_windows = "pwsh -File .codex/hooks/quality-check.ps1"

@@ -103,6 +103,11 @@ with each request. The server does not persist or share chat sessions. Clearing
 site data removes browser history. Long conversations resend more context and
 can eventually exceed the model's context window.
 
+For a guided explanation with offline exercises, see
+[`docs/chat-session-state-management.md`](./docs/chat-session-state-management.md).
+For function signatures, schemas, endpoints, errors, and browser exports, see
+[`docs/api-reference.md`](./docs/api-reference.md).
+
 Use the sun or moon button in the chat header to switch themes. The selected
 theme is saved in the browser; new sessions otherwise follow the system color
 scheme.

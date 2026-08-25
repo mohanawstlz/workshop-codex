@@ -6,3 +6,4 @@ __pycache__/
 .DS_Store
 frontend/dist/
 frontend/node_modules/
+.uv-cache/
