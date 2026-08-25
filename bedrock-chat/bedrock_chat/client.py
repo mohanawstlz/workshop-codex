@@ -83,7 +83,11 @@ def _sigv4_transport(region: str) -> Transport:
 class BedrockChatClient:
     """Maintains successful conversation turns and calls the Bedrock endpoint."""
 
-    def __init__(self, settings: Settings | None = None, transport: Transport | None = None) -> None:
+    def __init__(
+        self,
+        settings: Settings | None = None,
+        transport: Transport | None = None,
+    ) -> None:
         self.settings = settings or Settings.from_env()
         self.url = (
             f"https://bedrock-mantle.{self.settings.region}.api.aws/openai/v1/responses"

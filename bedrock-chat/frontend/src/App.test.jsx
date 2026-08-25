@@ -32,6 +32,34 @@ afterEach(() => {
 });
 
 describe("App", () => {
+  it("switches themes and remembers the selected mode", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(null),
+        }),
+      ),
+    );
+
+    const { unmount } = render(<App />);
+    expect(document.documentElement.dataset.theme).toBe("light");
+
+    fireEvent.click(screen.getByLabelText("Switch to dark mode"));
+
+    expect(document.documentElement.dataset.theme).toBe("dark");
+    expect(screen.getByLabelText("Switch to light mode")).toBeTruthy();
+    await waitFor(() =>
+      expect(localStorage.getItem("bedrock-chat-theme")).toBe("dark"),
+    );
+
+    unmount();
+    render(<App />);
+    expect(document.documentElement.dataset.theme).toBe("dark");
+    expect(screen.getByLabelText("Switch to light mode")).toBeTruthy();
+  });
+
   it("submits a user message and renders the assistant response", async () => {
     let resolveChat;
     const fetchMock = vi.fn((url, options) => {

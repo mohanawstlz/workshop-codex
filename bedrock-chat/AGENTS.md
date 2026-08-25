@@ -48,3 +48,63 @@ fake client or exercising pure helpers.
 - `boto3` is imported lazily so the test suite runs without AWS setup — preserve that.
 - Add a test with every behavior change; run `pytest` before finishing.
 - Match the existing style: type hints, module docstrings, small focused functions.
+
+
+# Team Codex Configuration
+
+## Bash commands
+- python -m bedrock_chat: Run the chat application
+- printf "message\nquit\n" | python -m bedrock_chat: Send scripted input (for testing)
+- python -m pytest tests/ -v: Run unit tests
+- python -m pytest tests/ -v --tb=short: Run tests with short tracebacks
+
+## Code style
+- Use Python 3.11+ with type hints on all function signatures
+- Follow PEP 8 style with 100-character line limit
+- Use f-strings for string formatting
+- IMPORTANT: Always include error handling around API calls
+- Add docstrings to all public functions and classes
+
+## Workflow
+- Run tests after every change: python -m pytest tests/ -v
+- YOU MUST write unit tests for new functions
+- Always update README.md when adding new features
+- Use descriptive commit messages that explain WHY, not just WHAT
+
+## Repository structure
+- bedrock_chat/__main__.py: Main CLI entry point
+- bedrock_chat/config.py: Runtime model and region configuration
+- tests/: Unit tests (mirror the module structure)
+
+## API patterns
+- Use the OpenAI Responses API (client.responses.create)
+- Always pass model as a parameter (don't hardcode)
+- Handle openai.BadRequestError and openai.NotFoundError explicitly
+
+
+## Custom Commands
+
+### /add-feature
+Add a new feature to the chat application:
+1. Create or modify the appropriate module
+2. Add type hints and docstrings
+3. Write unit tests in tests/
+4. Update README.md with usage instructions
+5. Run full test suite to verify nothing is broken
+
+### /debug-issue
+Debug systematically:
+1. Read error logs and identify root cause
+2. Search codebase for similar patterns
+3. Check git history for related commits
+4. Reproduce in minimal test case
+5. Implement fix with error handling
+6. Write regression test
+
+### /review-code
+Review code changes:
+1. Check code quality and PEP 8 adherence
+2. Verify all new code has tests
+3. Look for security vulnerabilities (API key exposure, injection)
+4. Ensure proper error handling around API calls
+5. Validate type hints are complete

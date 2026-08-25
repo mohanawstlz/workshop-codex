@@ -1,0 +1,5 @@
+interface:
+  display_name: "FastAPI CRUD Resource"
+  short_description: "Scaffold and verify FastAPI CRUD resources"
+  default_prompt: "Use $fastapi-crud-resource to add a validated Order CRUD
+    API to this FastAPI application."
