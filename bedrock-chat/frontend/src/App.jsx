@@ -9,11 +9,13 @@ import {
   Lightbulb,
   Menu,
   MessageSquare,
+  Moon,
   PanelLeftClose,
   Plus,
   RotateCcw,
   Sparkles,
   Square,
+  Sun,
   Trash2,
   UserRound,
   X,
@@ -21,6 +23,7 @@ import {
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -63,6 +66,17 @@ const SUGGESTIONS = [
 
 const CONVERSATION_CLEARED = "conversation-cleared";
 const MESSAGE_ENTRANCE_DURATION_MS = 240;
+const THEME_STORAGE_KEY = "bedrock-chat-theme";
+
+function getInitialTheme() {
+  const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+  if (storedTheme === "light" || storedTheme === "dark") {
+    return storedTheme;
+  }
+  return window.matchMedia?.("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+}
 
 function updateConversation(conversations, id, updater) {
   return conversations.map((conversation) =>
@@ -91,6 +105,7 @@ function App() {
   const [failure, setFailure] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
   const [enteringMessage, setEnteringMessage] = useState(null);
+  const [theme, setTheme] = useState(getInitialTheme);
   const [config, setConfig] = useState({
     model: "OpenAI GPT",
     region: "Amazon Bedrock",
@@ -108,6 +123,14 @@ function App() {
   useEffect(() => {
     saveConversations(conversations);
   }, [conversations]);
+
+  useLayoutEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute("content", theme === "dark" ? "#17191b" : "#ffffff");
+  }, [theme]);
 
   useEffect(() => {
     fetch("/api/config")
@@ -424,6 +447,16 @@ function App() {
             </div>
           </div>
           <div className="topbar-actions">
+            <button
+              className="icon-button theme-toggle"
+              aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+              title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+              onClick={() =>
+                setTheme((current) => (current === "light" ? "dark" : "light"))
+              }
+            >
+              {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
+            </button>
             <button
               className="icon-button clear-chat"
               aria-label="Clear conversation"

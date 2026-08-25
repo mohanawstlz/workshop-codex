@@ -6,7 +6,8 @@ authentication.
 
 ## Features
 
-- Responsive React chat interface with Markdown responses and subtle message animations
+- Responsive React chat interface with Markdown responses, light and dark themes,
+  and subtle message animations
 - Multiple browser-local conversations with new, clear, delete, stop, retry, and copy actions
 - Stateless FastAPI endpoint that validates and forwards conversation history
 - In-memory Order CRUD API with validated request and response models
@@ -101,6 +102,10 @@ The browser stores conversations in local storage and sends the active history
 with each request. The server does not persist or share chat sessions. Clearing
 site data removes browser history. Long conversations resend more context and
 can eventually exceed the model's context window.
+
+Use the sun or moon button in the chat header to switch themes. The selected
+theme is saved in the browser; new sessions otherwise follow the system color
+scheme.
 
 ## Terminal client
 
